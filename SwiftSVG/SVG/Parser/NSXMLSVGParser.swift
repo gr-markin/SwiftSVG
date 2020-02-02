@@ -194,10 +194,6 @@ open class NSXMLSVGParser: XMLParser, XMLParserDelegate {
         }
         
         lastElement.didProcessElement(in: containerElement)
-        
-        if let lastShapeElement = lastElement as? SVGShapeElement {
-            self.resizeContainerBoundingBox(lastShapeElement.boundingBox)
-        }
     }
     
     /**
@@ -238,19 +234,6 @@ open class NSXMLSVGParser: XMLParser, XMLParserDelegate {
     
 }
 
-extension NSXMLSVGParser {
-    
-    /**
-     Method that resizes the container bounding box that fits all the subpaths.
-     */
-    func resizeContainerBoundingBox(_ boundingBox: CGRect?) {
-        guard let thisBoundingBox = boundingBox else {
-            return
-        }
-        self.containerLayer.boundingBox = self.containerLayer.boundingBox.union(thisBoundingBox)
-    }
-}
-
 /**
  `NSXMLSVGParser` conforms to the protocol `CanManageAsychronousParsing` that uses a simple reference count to see if there are any pending asynchronous tasks that have been dispatched and are still being processed. Once the element has finished processing, the asynchronous elements calls the delegate callback `func finishedProcessing(shapeLayer:)` and the delegate will decrement the count.
  */
@@ -264,9 +247,7 @@ extension NSXMLSVGParser: CanManageAsychronousParsing {
         self.asyncCountQueue.sync {
             self.asyncParseCount -= 1
         }
-        
-        self.resizeContainerBoundingBox(shapeLayer.path?.boundingBox)
-        
+              
         guard self.asyncParseCount <= 0 && self.didDispatchAllElements else {
             return
         }

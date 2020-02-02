@@ -78,7 +78,10 @@ public extension SVGLayerType where Self: CALayer {
 open class SVGLayer: CAShapeLayer, SVGLayerType {
     
     /// The minimum CGRect that fits all subpaths
-    public var boundingBox = CGRect.null    
+    public lazy var boundingBox: CGRect = {
+        return sublayers?.reduce(CGRect.null) {
+          return $0.union(SVGLayer.computeBoundingBox($1)) } ?? CGRect.null
+    }()
 }
 
 public extension SVGLayer {
@@ -89,8 +92,17 @@ public extension SVGLayer {
     var svgLayerCopy: SVGLayer? {
         let tmp = NSKeyedArchiver.archivedData(withRootObject: self)
         let copiedLayer = NSKeyedUnarchiver.unarchiveObject(with: tmp) as? SVGLayer
-        copiedLayer?.boundingBox = self.boundingBox
         return copiedLayer
+    }
+}
+
+private extension SVGLayer {
+    private static func computeBoundingBox(_ layer: CALayer) -> CGRect {
+        var bbox = (layer as? CAShapeLayer)?.path?.boundingBoxOfPath ?? CGRect.null
+        if let sublayers = layer.sublayers {
+          bbox = sublayers.reduce(bbox) {return $0.union(computeBoundingBox($1))}
+        }
+        return bbox.applying(layer.affineTransform())
     }
 }
 
