@@ -69,7 +69,7 @@ internal protocol PathCommand: PreviousCommand {
      - Parameter path: The path to append a new path to
      - Parameter previousCommand: An optional previous command. Used primarily with the shortcut cubic and quadratic Bezier types
      */
-    func execute(on path: UIBezierPath, previousCommand: PreviousCommand?)
+    func execute(on path: CGMutablePath, previousCommand: PreviousCommand?)
 }
 
 /**
@@ -170,7 +170,7 @@ internal struct MoveTo: PathCommand {
      Start a new sub-path at the given (x,y) coordinates. M (uppercase) indicates that absolute coordinates will follow; m (lowercase) indicates that relative coordinates will follow. If a moveto is followed by multiple pairs of coordinates, the subsequent pairs are treated as implicit lineto commands. Hence, implicit lineto commands will be relative if the moveto is relative, and absolute if the moveto is absolute.
      ```
      */
-    internal func execute(on path: UIBezierPath, previousCommand: PreviousCommand? = nil) {
+    internal func execute(on path: CGMutablePath, previousCommand: PreviousCommand? = nil) {
         
         if previousCommand is MoveTo {
             var implicitLineTo = LineTo(pathType: self.pathType)
@@ -206,8 +206,8 @@ internal struct ClosePath: PathCommand {
     /**
      Closes the current path
      */
-    internal func execute(on path: UIBezierPath, previousCommand: PreviousCommand? = nil) {
-        path.close()
+    internal func execute(on path: CGMutablePath, previousCommand: PreviousCommand? = nil) {
+        path.closeSubpath()
     }
     
 }
@@ -234,7 +234,7 @@ internal struct LineTo: PathCommand {
     /**
      Creates a line from the `path.currentPoint` to point `CGPoint(self.coordinateBuffer[0], coordinateBuffer[1])`
      */
-    internal func execute(on path: UIBezierPath, previousCommand: PreviousCommand? = nil) {
+    internal func execute(on path: CGMutablePath, previousCommand: PreviousCommand? = nil) {
         let point = self.pointForPathType(CGPoint(x: self.coordinateBuffer[0], y: self.coordinateBuffer[1]), relativeTo: path.currentPoint)
         path.addLine(to: point)
     }
@@ -262,7 +262,7 @@ internal struct HorizontalLineTo: PathCommand {
     /**
      Adds a horizontal line from the currentPoint to `CGPoint(self.coordinateBuffer[0], path.currentPoint.y)`
      */
-    internal func execute(on path: UIBezierPath, previousCommand: PreviousCommand? = nil) {
+    internal func execute(on path: CGMutablePath, previousCommand: PreviousCommand? = nil) {
         let x = self.coordinateBuffer[0]
         let point = (self.pathType == .absolute ? CGPoint(x: CGFloat(x), y: path.currentPoint.y) : CGPoint(x: path.currentPoint.x + CGFloat(x), y: path.currentPoint.y))
         path.addLine(to: point)
@@ -291,7 +291,7 @@ internal struct VerticalLineTo: PathCommand {
     /**
      Adds a vertical line from the currentPoint to `CGPoint(path.currentPoint.y, self.coordinateBuffer[0])`
      */
-    internal func execute(on path: UIBezierPath, previousCommand: PreviousCommand? = nil) {
+    internal func execute(on path: CGMutablePath, previousCommand: PreviousCommand? = nil) {
         let y = self.coordinateBuffer[0]
         let point = (self.pathType == .absolute ? CGPoint(x: path.currentPoint.x, y: CGFloat(y)) : CGPoint(x: path.currentPoint.x, y: path.currentPoint.y + CGFloat(y)))
         path.addLine(to: point)
@@ -320,11 +320,11 @@ internal struct CurveTo: PathCommand {
     /**
      Adds a cubic Bezier curve to `path`. The path will end up at `CGPoint(self.coordinateBuffer[4], self.coordinateBuffer[5])`. The control point for `path.currentPoint` will be `CGPoint(self.coordinateBuffer[0], self.coordinateBuffer[1])`. Then controle point for the end point will be CGPoint(self.coordinateBuffer[2], self.coordinateBuffer[3])
      */
-    internal func execute(on path: UIBezierPath, previousCommand: PreviousCommand? = nil) {
+    internal func execute(on path: CGMutablePath, previousCommand: PreviousCommand? = nil) {
         let startControl = self.pointForPathType(CGPoint(x: self.coordinateBuffer[0], y: self.coordinateBuffer[1]), relativeTo: path.currentPoint)
         let endControl = self.pointForPathType(CGPoint(x: self.coordinateBuffer[2], y: self.coordinateBuffer[3]), relativeTo: path.currentPoint)
         let point = self.pointForPathType(CGPoint(x: self.coordinateBuffer[4], y: self.coordinateBuffer[5]), relativeTo: path.currentPoint)
-        path.addCurve(to: point, controlPoint1: startControl, controlPoint2: endControl)
+        path.addCurve(to: point, control1: startControl, control2: endControl)
     }
 }
 
@@ -350,7 +350,7 @@ internal struct SmoothCurveTo: PathCommand {
     /**
      Shortcut cubic Bezier curve to that add a new path ending up at `CGPoint(self.coordinateBuffer[0], self.coordinateBuffer[1])` with a single control point in the middle.
      */
-    internal func execute(on path: UIBezierPath, previousCommand: PreviousCommand? = nil) {
+    internal func execute(on path: CGMutablePath, previousCommand: PreviousCommand? = nil) {
         
         let point = self.pointForPathType(CGPoint(x: self.coordinateBuffer[2], y: self.coordinateBuffer[3]), relativeTo: path.currentPoint)
         let controlEnd = self.pointForPathType(CGPoint(x: self.coordinateBuffer[0], y: self.coordinateBuffer[1]), relativeTo: path.currentPoint)
@@ -393,7 +393,7 @@ internal struct SmoothCurveTo: PathCommand {
         } else {
             controlStart = path.currentPoint
         }
-        path.addCurve(to: point, controlPoint1: controlStart, controlPoint2: controlEnd)
+        path.addCurve(to: point, control1: controlStart, control2: controlEnd)
     }
 }
 
@@ -416,10 +416,10 @@ internal struct QuadraticCurveTo: PathCommand {
         self.pathType = pathType
     }
     
-    internal func execute(on path: UIBezierPath, previousCommand: PreviousCommand? = nil) {
+    internal func execute(on path: CGMutablePath, previousCommand: PreviousCommand? = nil) {
         let controlPoint = self.pointForPathType(CGPoint(x: self.coordinateBuffer[0], y: self.coordinateBuffer[1]), relativeTo: path.currentPoint)
         let point = self.pointForPathType(CGPoint(x: self.coordinateBuffer[2], y: self.coordinateBuffer[3]), relativeTo: path.currentPoint)
-        path.addQuadCurve(to: point, controlPoint: controlPoint)
+        path.addQuadCurve(to: point, control: controlPoint)
     }
 }
 
@@ -445,7 +445,7 @@ internal struct SmoothQuadraticCurveTo: PathCommand {
         self.pathType = pathType
     }
     
-    internal func execute(on path: UIBezierPath, previousCommand: PreviousCommand? = nil) {
+    internal func execute(on path: CGMutablePath, previousCommand: PreviousCommand? = nil) {
         
         let point = self.pointForPathType(CGPoint(x: self.coordinateBuffer[0], y: self.coordinateBuffer[1]), relativeTo: path.currentPoint)
         
@@ -470,13 +470,12 @@ internal struct SmoothQuadraticCurveTo: PathCommand {
         } else {
             controlPoint = path.currentPoint
         }
-        path.addQuadCurve(to: point, controlPoint: controlPoint)
+        path.addQuadCurve(to: point, control: controlPoint)
     }
 }
 
 /**
  The `PathCommand` that corresponds to the SVG `A` or `a` command
- - TODO: Still needs an implementation
  */
 internal struct EllipticalArc: PathCommand {
     
@@ -484,7 +483,7 @@ internal struct EllipticalArc: PathCommand {
     internal var coordinateBuffer = [Double]()
     
     /// :nodoc:
-    internal let numberOfRequiredParameters = 2
+    internal let numberOfRequiredParameters = 7
     
     /// :nodoc:
     internal let pathType: PathType
@@ -495,7 +494,166 @@ internal struct EllipticalArc: PathCommand {
     }
     
     /// :nodoc:
-    internal func execute(on path: UIBezierPath, previousCommand: PreviousCommand? = nil) {
-        assert(false, "Needs Implementation")
+    internal func execute(on path: CGMutablePath, previousCommand: PreviousCommand? = nil) {
+        // Ported Swift implementation from: https://github.com/GenerallyHelpfulSoftware/Scalar2D
+        
+        // Notes to the original algorithm
+        // implementation notes http://www.w3.org/TR/SVG/implnote.html#ArcConversionEndpointToCenter
+        // general algorithm from MIT licensed http://code.google.com/p/svg-edit/source/browse/trunk/editor/canvg/canvg.js
+        // Gabe Lerner (gabelerner@gmail.com)
+        // first do first aid to the parameters to keep them in line
+        
+        let curPoint = path.currentPoint
+        
+        let degToRad = CGFloat.pi / 180.0
+        
+        var xRadius = CGFloat(self.coordinateBuffer[0])
+        var yRadius = CGFloat(self.coordinateBuffer[1])
+        var angle = CGFloat(self.coordinateBuffer[2])
+        
+        let largeArcFlag = (self.coordinateBuffer[3] == 1.0)
+        let sweepFlag = (self.coordinateBuffer[4] == 1.0)
+        
+        let endPoint = self.pointForPathType(CGPoint(x: self.coordinateBuffer[5],
+                                                     y: self.coordinateBuffer[6]), relativeTo: curPoint)
+        
+        guard curPoint != endPoint else { return }
+        guard xRadius != 0.0, yRadius != 0.0 else {
+            path.addLine(to: endPoint)
+            return
+        }
+        
+        xRadius = abs(xRadius)
+        yRadius = abs(yRadius)
+        
+        angle = fmod(angle, 360.0)
+        
+        let angleRad = degToRad * angle
+        let angleCos = cos(angleRad)
+        let angleSin = sin(angleRad)
+        
+        let deltaX = path.currentPoint.x - endPoint.x
+        let deltaY = path.currentPoint.y - endPoint.y
+        
+        let ½DeltaX = deltaX / 2.0
+        let ½DeltaY = deltaY / 2.0
+               
+        var xRadius² = xRadius*xRadius
+        var yRadius² = yRadius*yRadius
+               
+               
+        // steps are from the implementation notes
+        // F.6.5  Step 1: Compute (x1′, y1′)
+        let translatedCurPoint = CGPoint(x: angleCos * ½DeltaX + angleSin * ½DeltaY,
+                                         y: -angleSin * ½DeltaX + angleCos * ½DeltaY)
+                   
+               
+        let translatedCurPointX² = translatedCurPoint.x * translatedCurPoint.x
+        let translatedCurPointY² = translatedCurPoint.y * translatedCurPoint.y
+               
+        // (skipping to different section) F.6.6 Step 3: Ensure radii are large enough
+        var shouldBeNoMoreThanOne = translatedCurPointX²/(xRadius²) + translatedCurPointY²/(yRadius²)
+               
+        if(shouldBeNoMoreThanOne > 1.0) {
+            xRadius *= sqrt(shouldBeNoMoreThanOne)
+            yRadius *= sqrt(shouldBeNoMoreThanOne)
+                   
+            xRadius² = xRadius*xRadius
+            yRadius² = yRadius*yRadius
+                   
+            shouldBeNoMoreThanOne = translatedCurPointX²/(xRadius²) + translatedCurPointY²/(yRadius²)
+            if(shouldBeNoMoreThanOne > 1.0) { // sometimes just a bit north of 1.0000000 after first pass
+                shouldBeNoMoreThanOne += 0.000001 // making sure
+                xRadius *= sqrt(shouldBeNoMoreThanOne)
+                yRadius *= sqrt(shouldBeNoMoreThanOne)
+                       
+                xRadius² = xRadius*xRadius
+                yRadius² = yRadius*yRadius
+            }
+        }
+                       
+        // back to  F.6.5   Step 2: Compute (cx′, cy′)
+        let  centerScalingDivisor = xRadius²*translatedCurPointY² + yRadius²*translatedCurPointX²
+        var centerScaling = CGFloat(0.0)
+               
+        if(centerScalingDivisor != 0.0) {
+            let centerScaling² = (xRadius²*yRadius² - xRadius²*translatedCurPointY² - yRadius²*translatedCurPointX²) / centerScalingDivisor
+            centerScaling = sqrt(centerScaling²)
+            
+            if(centerScaling.isNaN) {
+                centerScaling = 0.0
+            }
+               
+            if(sweepFlag == largeArcFlag) {
+                centerScaling *= -1.0
+            }
+        }
+               
+        let translatedCenterPoint = CGPoint(x: centerScaling * xRadius * translatedCurPoint.y / yRadius,
+                                            y: -centerScaling * yRadius * translatedCurPoint.x / xRadius)
+               
+        // F.6.5  Step 3: Compute (cx, cy) from (cx′, cy′)
+               
+               
+        let averageX = (curPoint.x + endPoint.x) / 2.0
+        let averageY = (curPoint.y + endPoint.y) / 2.0
+        
+        let centerPoint = CGPoint(x: averageX + angleCos * translatedCenterPoint.x - angleSin * translatedCenterPoint.y,
+                                  y: averageY + angleSin * translatedCenterPoint.x + angleCos * translatedCenterPoint.y)
+        
+        // F.6.5   Step 4: Compute θ1 and Δθ
+               
+        // misusing CGPoint as a vector
+        let vectorX = CGPoint(x: 1.0, y: 0.0)
+        let vectorU = CGPoint(x: (translatedCurPoint.x - translatedCenterPoint.x) / xRadius,
+                              y: (translatedCurPoint.y - translatedCenterPoint.y) / yRadius)
+        
+        let vectorV = CGPoint(x: (-translatedCurPoint.x - translatedCenterPoint.x) / xRadius,
+                              y: (-translatedCurPoint.y - translatedCenterPoint.y) / yRadius)
+               
+        let startAngle = computeAngle(vectorX, vectorU)
+        var angleDelta = computeAngle(vectorU, vectorV)
+        let vectorRatio = ration(vectorU, vectorV)
+        
+               
+        if(vectorRatio <= -1) {
+            angleDelta = CGFloat.pi
+        } else if(vectorRatio >= 1.0) {
+            angleDelta = 0.0
+        }
+        
+        if !sweepFlag, angleDelta > 0.0 {
+            angleDelta = angleDelta - 2.0 * CGFloat.pi
+        }
+        
+        if sweepFlag, angleDelta < 0.0 {
+            angleDelta = angleDelta + 2.0 * CGFloat.pi
+        }
+        
+        var transform = CGAffineTransform.identity
+        
+        transform = transform.translatedBy(x: centerPoint.x, y: centerPoint.y)
+        transform = transform.rotated(by: angleRad)
+        
+        let radius = (xRadius > yRadius) ? xRadius : yRadius
+        let scaleX = (xRadius > yRadius) ? 1.0 : xRadius / yRadius
+        let scaleY = (xRadius > yRadius) ? yRadius / xRadius : 1.0
+                
+        transform = transform.scaledBy(x: scaleX, y: scaleY)
+                
+        path.addArc(center: CGPoint.zero, radius: radius, startAngle: startAngle, endAngle: startAngle + angleDelta, clockwise: !sweepFlag, transform: transform)
+    }
+    
+    private func magnitude(_ v: CGPoint) -> CGFloat {
+        return CGFloat(sqrt(v.x*v.x + v.y*v.y))
+    }
+    
+    private func ration(_ v1: CGPoint, _ v2: CGPoint) -> CGFloat {
+        return (v1.x*v2.x + v1.y*v2.y) / (magnitude(v1) * magnitude(v2))
+    }
+        
+    private func computeAngle(_ v1: CGPoint, _ v2: CGPoint) -> CGFloat {
+        let result = acos(ration(v1, v2))
+        return (v1.x * v2.y < v1.y * v2.x) ? -result : result
     }
 }

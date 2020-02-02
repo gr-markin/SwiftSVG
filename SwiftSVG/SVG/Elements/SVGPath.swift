@@ -84,7 +84,7 @@ final class SVGPath: SVGShapeElement, ParsesAsynchronously, DelaysApplyingAttrib
         assert(workingString.hasPrefix("M") || workingString.hasPrefix("m"), "Path d attribute must begin with MoveTo Command (\"M\")")
         autoreleasepool { () -> () in
             
-            let pathDPath = UIBezierPath()
+            let pathDPath = CGMutablePath()
             pathDPath.move(to: CGPoint.zero)
 
             let parsePathClosure = {
@@ -102,14 +102,14 @@ final class SVGPath: SVGShapeElement, ParsesAsynchronously, DelaysApplyingAttrib
                 concurrent.async(execute: parsePathClosure)
                 concurrent.async(flags: .barrier) { [weak self] in
                     guard var this = self else { return }
-                    this.svgLayer.path = pathDPath.cgPath
+                    this.svgLayer.path = pathDPath
                     this.applyDelayedAttributes()
                     this.asyncParseManager?.finishedProcessing(this.svgLayer)
                 }
                 
             } else {
                 parsePathClosure()
-                self.svgLayer.path = pathDPath.cgPath
+                self.svgLayer.path = pathDPath
             }
         }
     }
