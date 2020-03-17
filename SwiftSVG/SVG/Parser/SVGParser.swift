@@ -49,19 +49,6 @@ struct SVGParseOptions: OptionSet {
  A protocol describing an XML parser capable of parsing SVG data
  */
 public protocol SVGParser {
-    
-    /**
-     Initializer to create a new `SVGParser` instance
-     - parameters:
-        - SVGData: SVG file as Data
-        - supportedElements: The elements and corresponding attribiutes the parser can parse
-        - completion: A closure to execute after the parser has completed parsing and processing the SVG
-     */
-    init(svgData: Data, supportedElements: SVGParserSupportedElements?, completion: ((SVGLayer) -> ())?)
-    
-    /// A closure that is executed after all elements have been processed. Should be guaranteed to be executed after all elements have been processed, even if parsing asynchronously.
-    var completionBlock: ((SVGLayer) -> ())? { get }
-    
     /// A struct listing all the elements and its attributes that should be parsed
     var supportedElements: SVGParserSupportedElements? { get }
     
@@ -73,5 +60,20 @@ public protocol SVGParser {
 }
 
 
-
+/**
+A protocol describing an XML parser capable of parsing SVG data asynchronously
+*/
+public protocol SVGParserAsync {
+  /**
+   Initializer to create a new `SVGParser` instance
+   - parameters:
+      - SVGData: SVG file as Data
+      - supportedElements: The elements and corresponding attribiutes the parser can parse
+      - completion: A closure to execute after the parser has completed parsing and processing the SVG
+   */
+  init(svgData: Data, supportedElements: SVGParserSupportedElements?, completionQueue: DispatchQueue?, completion: ((SVGLayer) -> ())?)
+  
+  /// A closure that is executed after all elements have been processed. Should be guaranteed to be executed after all elements have been processed, even if parsing asynchronously.
+  var completionBlock: ((SVGLayer) -> ())? { get }
+}
 

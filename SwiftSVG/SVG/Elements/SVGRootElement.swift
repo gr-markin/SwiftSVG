@@ -38,7 +38,7 @@
  Concrete implementation that creates a container from a `<svg>` element and its attributes. This will almost always be the root container element that will container all other `SVGElement` layers
  */
 
-struct SVGRootElement: SVGContainerElement {
+class SVGRootElement: SVGContainerElement {
     
     /// :nodoc:
     internal static let elementName = "svg"
@@ -51,7 +51,10 @@ struct SVGRootElement: SVGContainerElement {
     
     // :nodoc:
     internal var supportedAttributes = [String : (String) -> ()]()
-    
+  
+    // :nodec
+    internal var viewBox: CGRect? = nil
+  
     /**
      Function that parses a number string and sets the `containerLayer`'s width
      */
@@ -85,7 +88,9 @@ struct SVGRootElement: SVGContainerElement {
         guard points.count == 4 else {
             return
         }
-        self.containerLayer.frame = CGRect(x: points[0], y: points[1], width: points[2], height: points[3])
+        
+        self.viewBox = CGRect(x: points[0], y: points[1],
+                              width: points[2], height: points[3])
     }
 }
 

@@ -36,8 +36,7 @@ import AppKit
 #endif
 
 
-public extension String {
-    
+extension String {    
     /// Helper function that creates a new String from a given integer range
     subscript(integerRange: Range<Int>) -> String {
         get {

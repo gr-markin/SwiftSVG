@@ -48,12 +48,16 @@ final class SVGPath: SVGShapeElement, ParsesAsynchronously, DelaysApplyingAttrib
     internal var delayedAttributes = [String : String]()
     
     /// :nodoc:
-    internal var asyncParseManager: CanManageAsychronousParsing? = nil
+    internal var asyncParseManager: CanManageAsychronousParsing? = nil {
+        didSet {
+            shouldParseAsynchronously = (asyncParseManager != nil)
+        }
+    }
     
     /**
      Flag that sets whether the path should be parsed asynchronously or not
      */
-    internal var shouldParseAsynchronously = true
+    internal var shouldParseAsynchronously = false
     
     /// :nodoc:
     internal var supportedAttributes = [String : (String) -> ()]()
@@ -96,7 +100,7 @@ final class SVGPath: SVGShapeElement, ParsesAsynchronously, DelaysApplyingAttrib
             }
             
             if self.shouldParseAsynchronously {
-                
+                print("Started doing bad things")
                 let concurrent = DispatchQueue(label: "com.straussmade.swiftsvg.path.concurrent", attributes: .concurrent)
                 
                 concurrent.async(execute: parsePathClosure)

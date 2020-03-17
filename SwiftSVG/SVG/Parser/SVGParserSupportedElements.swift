@@ -189,11 +189,11 @@ public struct SVGParserSupportedElements {
                 return returnElement
             },
             SVGRootElement.elementName: {
-                var returnElement = SVGRootElement()
+                let returnElement = SVGRootElement()
                 returnElement.supportedAttributes = [
-                    "width": returnElement.parseWidth,
-                    "height": returnElement.parseHeight,
-                    "viewBox": returnElement.viewBox
+                    "width": unown(returnElement, SVGRootElement.parseWidth),
+                    "height": unown(returnElement, SVGRootElement.parseHeight),
+                    "viewBox": unown(returnElement, SVGRootElement.viewBox)
                 ]
                 returnElement.supportedAttributes.add(returnElement.identityAttributes)
                 return returnElement

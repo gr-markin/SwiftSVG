@@ -168,6 +168,17 @@ public extension UIColor {
         self.init(colorValuesString: valuesString)
     }
     
+    /**
+     Convenience initializer that creates a new UIColor from a CSS3 named color
+     - SeeAlso: See here for all the colors: [https://www.w3.org/TR/css3-color/#svg-color](https://www.w3.org/TR/css3-color/#svg-color)
+     */
+    internal convenience init?(cssName: String) {
+        guard let namedColor = CGColor.named[cssName.lowercased()] else {
+            return nil
+        }
+        self.init(cgColor: namedColor)
+    }
+    
     /// :nodoc:
     private convenience init(colorValuesString: Substring) {
         let colorsArray = colorValuesString
@@ -177,18 +188,6 @@ public extension UIColor {
             }
         self.init(red: colorsArray[0] / 255.0, green: colorsArray[1] / 255.0, blue: colorsArray[2] / 255.0, alpha: (colorsArray.count > 3 ? colorsArray[3] / 1.0 : 1.0))
     }
-    
-    /**
-     Convenience initializer that creates a new UIColor from a CSS3 named color
-     - SeeAlso: See here for all the colors: [https://www.w3.org/TR/css3-color/#svg-color](https://www.w3.org/TR/css3-color/#svg-color)
-     */
-	convenience init?(cssName: String) {
-        guard let namedColor = CGColor.named[cssName.lowercased()] else {
-            return nil
-        }
-        self.init(cgColor: namedColor)
-    }
-    
     
 }
 

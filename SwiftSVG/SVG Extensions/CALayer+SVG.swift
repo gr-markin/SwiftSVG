@@ -40,10 +40,9 @@
 /**
  A set of convenience initializers that create new `CALayer` instances from SVG data.
  
- If you choose to use these initializers, it is assumed that you would like to exercise a higher level of control. As such, you must provide a completion block and then add the passed `SVGLayer` to the layer of your choosing. Use the UIView extensions if you prefer the easier to use one-liner initializers.
+ If you choose to use these initializers, it is assumed that you would like to exercise a higher level of control. Synchronous construction
  */
-public extension CALayer {
-    
+public extension CALayer {  
     /**
      Convenience initializer that creates a new `CALayer` from a local or remote URL. You must provide a completion block and add the passed `SVGLayer to a sublayer`.
      - Parameter svgURL: The local or remote `URL` of the SVG resource
@@ -93,7 +92,7 @@ public extension CALayer {
             if let parser = parser {
                 parserToUse = parser
             } else {
-                parserToUse = NSXMLSVGParser(svgData: svgData) { (svgLayer) in
+                parserToUse = NSXMLSVGParserAsync(svgData: svgData) { (svgLayer) in
                     
                     DispatchQueue.global(qos: .userInitiated).async {
                         guard let layerCopy = svgLayer.svgLayerCopy else {

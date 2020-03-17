@@ -38,6 +38,7 @@
  A protocol that describes an instance that can store bounding box information
  */
 public protocol SVGLayerType {
+    var viewBox: CGRect? { get set }
     var boundingBox: CGRect { get }
 }
 
@@ -50,17 +51,18 @@ public extension SVGLayerType where Self: CALayer {
      */
     @discardableResult
     func resizeToFit(_ rect: CGRect) -> Self {
+        let size = self.viewBox?.size ?? self.boundingBox.size
         
-        let boundingBoxAspectRatio = self.boundingBox.width / self.boundingBox.height
+        let boundingBoxAspectRatio = size.width / size.height
         let viewAspectRatio = rect.width / rect.height
         
         let scaleFactor: CGFloat
         if (boundingBoxAspectRatio > viewAspectRatio) {
             // Width is limiting factor
-            scaleFactor = rect.width / self.boundingBox.width
+            scaleFactor = rect.width / size.width
         } else {
             // Height is limiting factor
-            scaleFactor = rect.height / self.boundingBox.height
+            scaleFactor = rect.height / size.height
         }
         let scaleTransform = CGAffineTransform(scaleX: scaleFactor, y: scaleFactor)
         
@@ -76,6 +78,7 @@ public extension SVGLayerType where Self: CALayer {
  */
 
 open class SVGLayer: CAShapeLayer, SVGLayerType {
+    public var viewBox: CGRect? = nil
     
     /// The minimum CGRect that fits all subpaths
     public lazy var boundingBox: CGRect = {
@@ -92,6 +95,7 @@ public extension SVGLayer {
     var svgLayerCopy: SVGLayer? {
         let tmp = NSKeyedArchiver.archivedData(withRootObject: self)
         let copiedLayer = NSKeyedUnarchiver.unarchiveObject(with: tmp) as? SVGLayer
+        copiedLayer?.viewBox = viewBox
         return copiedLayer
     }
 }
@@ -139,6 +143,25 @@ extension SVGLayer {
             self.applyOnSublayers(ofType: CAShapeLayer.self) { (thisShapeLayer) in
                 thisShapeLayer.strokeColor = strokeColor
             }
+        }
+    }
+}
+
+
+// MARK: - Constructors
+
+public extension SVGLayer {
+    static func createFrom(url: URL) -> SVGLayer? {
+        guard let svgData = try? Data(contentsOf: url) else { return nil }                        
+        if let cached = SVGCache.default[svgData.cacheKey] {
+            return cached.svgLayerCopy
+        } else {
+            let parser = NSXMLSVGParser(svgData: svgData)
+            parser.startParsing()
+            if let layerCopy = parser.containerLayer.svgLayerCopy {
+                SVGCache.default[svgData.cacheKey] = layerCopy
+            }
+            return parser.containerLayer
         }
     }
 }
