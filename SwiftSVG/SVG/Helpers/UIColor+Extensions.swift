@@ -155,7 +155,7 @@ public extension UIColor {
     /**
      Convenience initializer that creates a new UIColor from a integer functional, taking the form `rgb(rrr, ggg, bbb)`
      */
-    internal convenience init(rgbString: String) {
+    internal convenience init?(rgbString: String) {
         let valuesString = rgbString.dropFirst(4).dropLast()
         self.init(colorValuesString: valuesString)
     }
@@ -163,7 +163,7 @@ public extension UIColor {
     /**
      Convenience initializer that creates a new UIColor from an integer functional, taking the form `rgba(rrr, ggg, bbb, <alphavalue>)`
      */
-    internal convenience init(rgbaString: String) {
+    internal convenience init?(rgbaString: String) {
         let valuesString = rgbaString.dropFirst(5).dropLast()
         self.init(colorValuesString: valuesString)
     }
@@ -180,12 +180,17 @@ public extension UIColor {
     }
     
     /// :nodoc:
-    private convenience init(colorValuesString: Substring) {
+    private convenience init?(colorValuesString: Substring) {
         let colorsArray = colorValuesString
             .split(separator: ",")
             .map { (numberString) -> CGFloat in
                 return CGFloat(String(numberString).trimmingCharacters(in: CharacterSet.whitespaces))!
             }
+      
+        guard colorsArray.count > 2 else {
+          return nil
+        }
+      
         self.init(red: colorsArray[0] / 255.0, green: colorsArray[1] / 255.0, blue: colorsArray[2] / 255.0, alpha: (colorsArray.count > 3 ? colorsArray[3] / 1.0 : 1.0))
     }
     
