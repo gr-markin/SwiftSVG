@@ -11,10 +11,13 @@ let package = Package(
             targets: ["SwiftSVG"]
         ),
     ],
+    dependencies: [
+      .package(url: "https://github.com/1024jp/WFColorCode.git", from: "2.5.0")
+    ],
     targets: [
         .target(
             name: "SwiftSVG",
-            dependencies: [],
+            dependencies: ["ColorCode"],
             path: "SwiftSVG"
         ),
         .testTarget(

@@ -29,9 +29,16 @@
 
 
 import Foundation
+import CommonCrypto
 
 extension Data {
+    private var sha256: String? {
+        guard let res = NSMutableData(length: Int(CC_SHA256_DIGEST_LENGTH)) else { return nil }
+        CC_SHA256((self as NSData).bytes, CC_LONG(self.count), res.mutableBytes.assumingMemoryBound(to: UInt8.self))
+        return res.base64EncodedString(options: [])
+    }
+  
     var cacheKey: String {
-        return "\(self.hashValue)-\(self.count)"
+        return self.sha256 ?? "\(self.hashValue)-\(self.count)"
     }
 }

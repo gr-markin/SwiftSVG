@@ -34,6 +34,8 @@
     import AppKit
 #endif
 
+import ColorCode
+
 /**
  A protocol that described an instance that can be filled. Two default implementations are provided for this protocol: 
     1. `SVGShapeElement` - Will set the fill color, fill opacity, and fill rule on the underlying `SVGLayer` which is a subclass of `CAShapeLayer`
@@ -66,13 +68,13 @@ extension Fillable where Self : SVGShapeElement {
      - SeeAlso: CAShapeLayer's [`fillColor`](https://developer.apple.com/documentation/quartzcore/cashapelayer/1522248-fillcolor)
      */
     func fill(fillColor: String) {
-        guard let colorComponents = self.svgLayer.fillColor?.components else {
-            return
+        guard let fillColor = UIColor(colorCode: fillColor) else { return }
+        
+        if let colorComponents = self.svgLayer.fillColor?.components {
+            self.svgLayer.fillColor = fillColor.withAlphaComponent(colorComponents[3]).cgColor
+        } else {
+            self.svgLayer.fillColor = fillColor.cgColor
         }
-        guard let fillColor = UIColor(svgString: fillColor) else {
-            return
-        }
-        self.svgLayer.fillColor = fillColor.withAlphaComponent(colorComponents[3]).cgColor
     }
     
     /**
