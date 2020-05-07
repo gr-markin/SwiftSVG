@@ -99,8 +99,7 @@ final class SVGPath: SVGShapeElement, ParsesAsynchronously, DelaysApplyingAttrib
                 }
             }
             
-            if self.shouldParseAsynchronously {
-                print("Started doing bad things")
+            if self.shouldParseAsynchronously {                
                 let concurrent = DispatchQueue(label: "com.straussmade.swiftsvg.path.concurrent", attributes: .concurrent)
                 
                 concurrent.async(execute: parsePathClosure)
