@@ -50,6 +50,8 @@ public extension NSBezierPath {
                     path.closeSubpath()
                 }
             }
+            points.deallocate()
+
             return path
         }
     }
