@@ -43,7 +43,7 @@ extension CALayer {
     /**
      Helper function that applies the given closure on all sublayers of a given type
      */
-    open func applyOnSublayers<T: CALayer>(ofType: T.Type, closure: (T) -> ()) {
+    public func applyOnSublayers<T: CALayer>(ofType: T.Type, closure: (T) -> ()) {
         _ = self.sublayers(in: self).map(closure)
     }
 

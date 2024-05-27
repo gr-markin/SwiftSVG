@@ -93,8 +93,10 @@ public extension SVGLayer {
      Returns a copy of the given SVGLayer
      */
     var svgLayerCopy: SVGLayer? {
-        let tmp = NSKeyedArchiver.archivedData(withRootObject: self)
-        let copiedLayer = NSKeyedUnarchiver.unarchiveObject(with: tmp) as? SVGLayer
+        guard let tmp = try? NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: true) else {
+          return nil
+        }
+        let copiedLayer = try? NSKeyedUnarchiver.unarchivedObject(ofClass: SVGLayer.self, from: tmp)
         copiedLayer?.viewBox = viewBox
         return copiedLayer
     }

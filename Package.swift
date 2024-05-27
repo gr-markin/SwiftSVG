@@ -1,10 +1,10 @@
-// swift-tools-version:5.0
+// swift-tools-version:5.9
 
 import PackageDescription
 
 let package = Package(
     name: "SwiftSVG",
-    platforms: [.macOS(.v10_14), .iOS(.v8), .tvOS(.v9)],
+    platforms: [.macOS(.v11), .iOS(.v12), .tvOS(.v12)],
     products: [
         .library(
             name: "SwiftSVG",
@@ -17,7 +17,7 @@ let package = Package(
     targets: [
         .target(
             name: "SwiftSVG",
-            dependencies: ["ColorCode"],
+            dependencies: [.product(name: "ColorCode", package: "WFColorCode")],
             path: "SwiftSVG"
         ),
         .testTarget(
